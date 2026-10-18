@@ -1,4 +1,4 @@
-package circl_sign
+package bls
 
 // todo import "github.com/cloudflare/circl/sign/bls"
 

@@ -42,7 +42,7 @@ done 8. 先用 TCP 直连跑通全链路。
 done 9. 搞 BadgerDB 前四张表（CRUD + TTL）。
 10. 写洪流 tick（3-7s，先全 dummy）。
 11. 加 tag 和头部解密（区分“给我的”和“不是给我的”）。
-12. 接 MLKEM + XChaCha 协商（先手动，后定时）。
+done 12. 接 MLKEM + XChaCha 协商（先手动，后定时）。
 13. 加 channel 发现（先固定名单，再 secret+时间派生）。
 done 14. 把 tornago 塞进 transport，替换 TCP，别动上层。
 15. 两台机器 + 一个 VPS 真跑，调 NAT、掉线、重连。

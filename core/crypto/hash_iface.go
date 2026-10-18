@@ -11,15 +11,7 @@ const (
 type HashSum [32]byte
 
 type Hasher interface {
-	Hash(b []byte) (HashSum, error)
+	Hash(b []byte) HashSum
 	HashMany(manyBytes [][]byte) ([]HashSum, error)
 	Algorithm() HashAlgo
-}
-
-func NewHasher(algo HashAlgo) (Hasher, error) {
-	switch algo {
-
-	}
-
-	return nil, nil
 }

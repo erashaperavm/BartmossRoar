@@ -21,13 +21,3 @@ type SymmetricCipher interface {
 	NonceSize() int
 	Algorithm() EncAlgo
 }
-
-// NewSymmetricCipher 根据算法和密钥构造一个 SymmetricCipher。
-// key 的长度和算法相关（ChaCha/XChaCha 都是 32 字节）。
-func NewSymmetricCipher(algo EncAlgo, key []byte) (SymmetricCipher, error) {
-	switch algo {
-
-	}
-
-	return nil, nil
-}

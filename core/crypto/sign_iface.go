@@ -10,24 +10,17 @@ const (
 )
 
 type Signer interface {
-	// Sign 形参不含私钥，在 impl 时使用 struct 封装
-	Sign(msg []byte) ([]byte, error)
+	// Sign 形参不含私钥，在 impl 时使用 struct 封装，ctx 目前用不到(ctx -> plaintext)
+	// 确保 string(ctx) 安全
+	Sign(msg []byte, ctx []byte) ([]byte, error)
 	PublicKey() PublicKey
 }
 
 type PublicKey interface {
-	Verify(msg, sig []byte) error
+	Verify(msg, ctx, sig []byte) bool
 
 	// Bytes 序列化公钥
-	Bytes() []byte
+	Bytes() ([]byte, error)
 
 	Algorithm() SignAlgo
-}
-
-func NewSigner(algo SignAlgo, priv any) (Signer, error) {
-	switch algo {
-
-	}
-
-	return nil, nil
 }
