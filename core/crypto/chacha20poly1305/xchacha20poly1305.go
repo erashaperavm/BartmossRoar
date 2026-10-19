@@ -43,7 +43,7 @@ func (xc2p1c *XChaCha20poly1305Cipher) Decrypt(ciphertext []byte) ([]byte, error
 	// Decrypt the message and check it wasn't tampered with.
 	plaintext, err := xc2p1c.aead.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("xchacha20poly1305 decrypt failed: %v", err))
+		return nil, fmt.Errorf("xchacha20poly1305 decrypt failed: %v", err)
 	}
 
 	return plaintext, nil
@@ -57,10 +57,10 @@ func (xc2p1c *XChaCha20poly1305Cipher) Algorithm() crypto.EncAlgo {
 	return crypto.EncXChaCha20Poly1305
 }
 
-func NewX(key crypto.Key) (*XChaCha20poly1305Cipher, error) {
+func NewX(key crypto.SymmetricCipherKey) (*XChaCha20poly1305Cipher, error) {
 	aead, err := chacha20poly1305.NewX(key[:])
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("XChaCha20poly1305Cipher new failed: %v", err))
+		return nil, fmt.Errorf("XChaCha20poly1305Cipher new failed: %v", err)
 	}
 	return &XChaCha20poly1305Cipher{aead: aead}, nil
 }

@@ -8,7 +8,7 @@ import (
 )
 
 // NewSymmetricCipher 负责把具体的实现返回给上层。
-func NewSymmetricCipher(algo crypto.EncAlgo, key crypto.Key) (crypto.SymmetricCipher, error) {
+func NewSymmetricCipher(algo crypto.EncAlgo, key crypto.SymmetricCipherKey) (crypto.SymmetricCipher, error) {
 	switch algo {
 	case crypto.EncChaCha20Poly1305:
 		return chacha20poly1305.New(key)

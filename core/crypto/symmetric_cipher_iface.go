@@ -2,7 +2,7 @@ package crypto
 
 type EncAlgo byte
 
-type Key [32]byte
+type SymmetricCipherKey [32]byte
 
 const (
 	EncChaCha20Poly1305 EncAlgo = iota
