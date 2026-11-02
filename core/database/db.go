@@ -74,7 +74,7 @@ func (db *DB) Path() string {
 // View 只读事务，返回 error 会中止事务。
 func (db *DB) View(fn func(txn *badger.Txn) error) error {
 	if db.badger == nil {
-		return errors.New("database: not open")
+		return ErrNotOpen
 	}
 	return db.badger.View(fn)
 }
@@ -82,7 +82,7 @@ func (db *DB) View(fn func(txn *badger.Txn) error) error {
 // Update 读写事务，返回 error 会回滚。
 func (db *DB) Update(fn func(txn *badger.Txn) error) error {
 	if db.badger == nil {
-		return errors.New("database: not open")
+		return ErrNotOpen
 	}
 	return db.badger.Update(fn)
 }
@@ -93,7 +93,9 @@ func (db *DB) Update(fn func(txn *badger.Txn) error) error {
 
 // Set 写入一个带可选 TTL 的键值。
 // ttl <= 0 表示永不过期。
-func (db *DB) Set(key, value []byte, ttl time.Duration) error {
+func (db *DB) Set(prefix TableKind, key, value []byte, ttl time.Duration) error {
+	key = append([]byte{prefix}, key...)
+
 	return db.Update(func(txn *badger.Txn) error {
 		entry := badger.NewEntry(key, value)
 		if ttl > 0 {
@@ -105,8 +107,9 @@ func (db *DB) Set(key, value []byte, ttl time.Duration) error {
 
 // Get 读取一个键。
 // 不存在时返回 ErrKeyNotFound，调用方自行判断。
-func (db *DB) Get(key []byte) ([]byte, error) {
+func (db *DB) Get(prefix TableKind, key []byte) ([]byte, error) {
 	var out []byte
+	key = append([]byte{prefix}, key...)
 
 	err := db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get(key)
@@ -121,14 +124,17 @@ func (db *DB) Get(key []byte) ([]byte, error) {
 }
 
 // Delete 删除一个键。
-func (db *DB) Delete(key []byte) error {
+func (db *DB) Delete(prefix TableKind, key []byte) error {
+	key = append([]byte{prefix}, key...)
 	return db.Update(func(txn *badger.Txn) error {
 		return txn.Delete(key)
 	})
 }
 
 // Has 判断键是否存在。
-func (db *DB) Has(key []byte) (bool, error) {
+func (db *DB) Has(prefix TableKind, key []byte) (bool, error) {
+	key = append([]byte{prefix}, key...)
+
 	exists := false
 	err := db.View(func(txn *badger.Txn) error {
 		_, err := txn.Get(key)
@@ -153,10 +159,10 @@ func (db *DB) Has(key []byte) (bool, error) {
 
 // ScanPrefix 遍历所有匹配前缀的键值。
 // 回调返回 error 会中止扫描。
-func (db *DB) ScanPrefix(prefix []byte, fn func(key, value []byte) error) error {
+func (db *DB) ScanPrefix(prefix TableKind, fn func(key, value []byte) error) error {
 	return db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
-		opts.Prefix = prefix
+		opts.Prefix = []byte{prefix}
 		opts.PrefetchValues = false // 需要时再 ValueCopy，省内存
 
 		it := txn.NewIterator(opts)
@@ -187,7 +193,7 @@ func (db *DB) ScanPrefix(prefix []byte, fn func(key, value []byte) error) error 
 // Badger 会自动做一部分，但写多删多时手动跑一次可以回收空间。
 func (db *DB) RunGC() error {
 	if db.badger == nil {
-		return errors.New("database: not open")
+		return ErrNotOpen
 	}
 	// 反复调用直到没有可回收的，或出错
 	for {
@@ -206,7 +212,7 @@ func (db *DB) RunGC() error {
 // 以后要做导出、迁移时用得上。
 func (db *DB) Backup(w interface{ Write([]byte) (int, error) }) error {
 	if db.badger == nil {
-		return errors.New("database: not open")
+		return ErrNotOpen
 	}
 	_, err := db.badger.Backup(w, 0)
 	return err

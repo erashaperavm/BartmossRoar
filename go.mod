@@ -7,7 +7,9 @@ require (
 	github.com/dgraph-io/badger/v4 v4.9.6
 	github.com/nao1215/tornago v0.4.3
 	github.com/spf13/cobra v1.10.2
+	github.com/ulikunitz/xz v0.5.17
 	github.com/zeebo/blake3 v0.2.4
+	golang.org/x/crypto v0.54.0
 )
 
 require (
@@ -25,7 +27,6 @@ require (
 	go.opentelemetry.io/otel v1.41.0 // indirect
 	go.opentelemetry.io/otel/metric v1.41.0 // indirect
 	go.opentelemetry.io/otel/trace v1.41.0 // indirect
-	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	google.golang.org/protobuf v1.36.7 // indirect
 )

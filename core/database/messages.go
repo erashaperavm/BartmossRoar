@@ -3,10 +3,15 @@ package database
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
 	"time"
 )
 
-type Message struct {
+type MessagesDB struct {
+	database *DB
+}
+
+type MessageRecord struct {
 	Identity                    ID
 	From                        ID
 	Timestamp                   int64  // unix timestamp
@@ -15,12 +20,11 @@ type Message struct {
 	OriginCompressedArchivePath string // origin compressed archive path
 }
 
-func (db *DB) RecordHistoryMsg(msg Message, ttl int) error {
-	key := append([]byte("messages::"), msg.Identity[:]...)
-	var value Message
+func (db *MessagesDB) RecordHistoryMsg(msg MessageRecord, ttl int) error {
+	var value MessageRecord
 	if msg.OriginCompressedArchivePath != "" {
 		// has path, prefer path in advance
-		value = Message{
+		value = MessageRecord{
 			From:                        msg.From,
 			Timestamp:                   msg.Timestamp,
 			Content:                     msg.Content,
@@ -28,14 +32,14 @@ func (db *DB) RecordHistoryMsg(msg Message, ttl int) error {
 		}
 	} else {
 		if msg.OriginCompressedArchiveData != nil {
-			value = Message{
+			value = MessageRecord{
 				From:                        msg.From,
 				Timestamp:                   msg.Timestamp,
 				Content:                     msg.Content,
 				OriginCompressedArchiveData: msg.OriginCompressedArchiveData,
 			}
 		} else {
-			value = Message{
+			value = MessageRecord{
 				From:      msg.From,
 				Timestamp: msg.Timestamp,
 				Content:   msg.Content,
@@ -45,43 +49,50 @@ func (db *DB) RecordHistoryMsg(msg Message, ttl int) error {
 
 	bytesVal, err := value.Bytes()
 	if err != nil {
-		return err
+		return fmt.Errorf("encode history message: %w", err)
 	}
 
-	return db.Set(key, bytesVal, time.Duration(ttl)*time.Second)
+	if err := db.database.Set(Messages, msg.Identity[:], bytesVal, time.Duration(ttl)*time.Second); err != nil {
+		return fmt.Errorf("store history message: %w", err)
+	}
+	return nil
 }
 
-func (db *DB) GetHistoryMsg(identity ID) (*Message, error) {
-	key := append([]byte("messages::"), identity[:]...)
-	bytesVal, err := db.Get(key)
+func (db *MessagesDB) GetHistoryMsg(identity ID) (*MessageRecord, error) {
+	bytesVal, err := db.database.Get(Messages, identity[:])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("load history message: %w", err)
 	}
 
 	msg, err := FromGobBytesToMessage(bytesVal)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("decode history message: %w", err)
 	}
 
 	return msg, nil
 }
 
-func (db *DB) DeleteHistoryMsg(identity ID) error {
-	key := append([]byte("messages::"), identity[:]...)
-	return db.Delete(key)
+func (db *MessagesDB) DeleteHistoryMsg(identity ID) error {
+	if err := db.database.Delete(Messages, identity[:]); err != nil {
+		return fmt.Errorf("delete history message: %w", err)
+	}
+	return nil
 }
 
-func (db *DB) GetHistoryMsgList() [][]byte {
+func (db *MessagesDB) GetHistoryMsgIDList() ([][]byte, error) {
 	var keyItems [][]byte
-	db.ScanPrefix([]byte("messages::"), func(key, value []byte) error {
+	err := db.database.ScanPrefix(Messages, func(key, value []byte) error {
 		keyItems = append(keyItems, key)
 		return nil
 	})
+	if err != nil {
+		return nil, fmt.Errorf("list history message IDs: %w", err)
+	}
 
-	return keyItems
+	return keyItems, nil
 }
 
-func (m *Message) Bytes() ([]byte, error) {
+func (m *MessageRecord) Bytes() ([]byte, error) {
 	var buf bytes.Buffer
 	// 创建一个 gob 编码器
 	enc := gob.NewEncoder(&buf)
@@ -89,15 +100,15 @@ func (m *Message) Bytes() ([]byte, error) {
 	// 序列化结构体
 	err := enc.Encode(m)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", ErrEncode, err)
 	}
 
 	return buf.Bytes(), nil
 }
 
-// FromGobBytes 将 []byte 反序列化回 Message 结构体
-func FromGobBytesToMessage(data []byte) (*Message, error) {
-	var m Message
+// FromGobBytesToMessage 将 []byte 反序列化回 MessageRecord 结构体
+func FromGobBytesToMessage(data []byte) (*MessageRecord, error) {
+	var m MessageRecord
 	buf := bytes.NewReader(data)
 	// 创建一个 gob 解码器
 	dec := gob.NewDecoder(buf)
@@ -105,7 +116,7 @@ func FromGobBytesToMessage(data []byte) (*Message, error) {
 	// 反序列化到结构体实例中
 	err := dec.Decode(&m)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
 
 	return &m, nil

@@ -1,0 +1,14 @@
+{
+  "Protocols": [
+    "Tor",
+    "TCP"
+  ],
+  "addressesIfTCP": [
+    "127.0.0.1:59000",
+    "192.168.0.3:32000"
+  ],
+  "localPortsIfTor": [
+    58000,
+    33000
+  ]
+}

@@ -8,7 +8,7 @@ BartmossRoar 设计记忆点
 · 首条消息：对方需在发送第一条信息前触发密钥协商。
 · PoT 反馈签名：使用 epoch 一次性密钥签名，不暴露长期身份。
 
-2. 洪流与网络层
+1. 洪流与网络层
 
 · 发送频率：3-7s 随机 tick 发送固定大小 block（无论有无消息，全发 dummy）。
 · 匿名集：对方所在 channel 内所有成员。channel 成员越多越匿名。
@@ -31,7 +31,7 @@ done · table0：已知节点的 ID 和 pubkey（SPHINCS+ Small）。
 done · table1：channel 内成员的 MLDSA 公钥和已交换的 XChaCha 密钥（30min/10min 定时重发与协商）。
 done · table2：10s TTL，保存已解密/已广播消息头的 Blake3 哈希（防重放）。
 done · table3（可选）：消息记录（id、from、timestamp、content、可选原数据包压缩 bytes）。
-· table4（新增）：记录 PoT 签名（带外反馈回来的签名，绑定 epoch 一次性密钥和消息 ID X）。
+done · table4（新增）：记录 PoT 签名（带外反馈回来的签名，绑定 epoch 一次性密钥和消息 ID X）。
 done · table5（新增）：60min 内的消息 ID（用于 PoT 验证与防伪造，超出 60min 的消息 ID 不承认）。
 
 5. 开发顺序（极简 Prototype）

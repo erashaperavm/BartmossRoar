@@ -22,6 +22,10 @@ type TCPTransport struct {
 }
 
 func NewTCP(addr string) (*TCPTransport, error) {
+	if addr == "" {
+		return nil, fmt.Errorf("invalid addr: %v", addr)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	t := &TCPTransport{
 		ctx:    ctx,

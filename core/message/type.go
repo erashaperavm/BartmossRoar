@@ -2,9 +2,9 @@ package message
 
 // type.go declares types
 
-type ID [32]byte
+type ID = [32]byte
 type Signal byte
-type Proto byte
+type Proto = byte
 
 const (
 	SYNC_SIG_KEY Signal = iota
@@ -87,4 +87,32 @@ type Payload struct {
 type Signature struct {
 	SignerID   ID     // who sig it
 	SigContent []byte // signature bytes
+}
+
+type DatapackEncrypted struct {
+	SignalBitCode []byte
+
+	/*
+		TargetTag plaintext
+		receiver should compute the shortest path to target
+	*/
+	TargetTag []ID
+
+	/*
+		LatestTopTimeStamp plaintext
+		the latest receiver should update it
+	*/
+	LatestTopTimeStamp uint64
+
+	/*
+		Payload ciphertext
+		(blank)
+	*/
+	Payload []byte
+
+	/*
+		TempSig plaintext
+		sender should use temp sig pub key to sign Payload + SignalBitCode
+	*/
+	TempSig []byte
 }

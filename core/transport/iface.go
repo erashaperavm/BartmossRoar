@@ -22,3 +22,14 @@ type Transport interface {
 	LocalAddr() NodeAddr
 	Close() error
 }
+
+func ProtoToString(p Proto) string {
+	switch p {
+	case TCP:
+		return "TCP"
+	case Tor:
+		return "Tor"
+	default:
+		return ""
+	}
+}

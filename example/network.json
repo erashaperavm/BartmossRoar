@@ -1,0 +1,11 @@
+{
+  "identity": "node-256-bit",
+  "signKey": [
+    "base64-encoded-signing-key",
+    "base64-encoded-signing-key"
+  ],
+  "encryptKey": [
+    "base64-encoded-encryption-key",
+    "base64-encoded-encryption-key"
+  ]
+}
